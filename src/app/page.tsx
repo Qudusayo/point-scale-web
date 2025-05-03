@@ -18,7 +18,7 @@ export default function Home() {
               />
             </div>
             <h1 className="text-white text-2xl font-bold">Quick Import</h1>
-            <p className="text-blue-100">Import your result from RMS</p>
+            <p className="text-blue-100">Import your result from UI RMS</p>
           </div>
 
           {/* Login form container */}

@@ -57,6 +57,7 @@ const LoginForm: React.FC = () => {
             placeholder="Enter your matric number"
             error={error}
             autoComplete="off"
+            required
           />
         </div>
 
@@ -69,6 +70,7 @@ const LoginForm: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             error={error}
+            required
             icon={
               showPassword ? (
                 <EyeOff
@@ -92,6 +94,7 @@ const LoginForm: React.FC = () => {
               className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition duration-150"
               checked={acceptTerms}
               onChange={(e) => setAcceptTerms(e.target.checked)}
+              required
             />
             <span className="ml-2 text-sm text-gray-600">
               I accept the{" "}
