@@ -117,6 +117,7 @@ async function fetchStudentData(username: string, password: string) {
   });
 
   const sessions = data.student_sessions;
+  const session_id = data.current_session.session_id
 
   const studentCourses = data.student_results || [];
   interface StudentCourse {
@@ -131,6 +132,7 @@ async function fetchStudentData(username: string, password: string) {
     semester: string;
     result: StudentCourse[];
     sessions: Session[];
+    session_id: string;
   }
 
   return {
@@ -152,6 +154,7 @@ async function fetchStudentData(username: string, password: string) {
         })
       ),
     sessions,
+    session_id,
   } as FetchStudentDataResult;
 }
 
@@ -215,9 +218,11 @@ app.post("/fetch-results", async (c) => {
   try {
     const result = await fetchStudentData(username, password);
     const sessions = [...result.sessions];
+    const session_id = result.session_id;
 
     // Remove the session data from the result
     delete (result as { sessions?: unknown }).sessions;
+    delete (result as { session_id?: unknown }).session_id;
 
     // console.log("Fetched results:", result);
     const encyptedResult = await encryptJSON(
@@ -227,6 +232,7 @@ app.post("/fetch-results", async (c) => {
 
     return c.json({
       sessions,
+      session_id,
       message: "Results fetched successfully",
       data: "point-scale://import?result=" + encyptedResult,
     });
@@ -256,6 +262,7 @@ app.post("/fetch-sessional-results", async (c) => {
     // console.log("Encrypted result:", encyptedResult);
     return c.json({
       message: "Results fetched successfully",
+      session_id: session,
       data: "point-scale://import?result=" + encyptedResult,
     });
   } catch (error) {

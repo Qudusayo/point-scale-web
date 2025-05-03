@@ -1,29 +1,47 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import Input from "./ui/Input";
 import Button from "./ui/Button";
 import Modal from "./ui/Modal";
-import { useLoginForm } from "../hooks/useLoginForm";
 import { Eye, EyeOff } from "lucide-react";
+import { useUserStore } from "../store/useUserStore";
 
 const LoginForm: React.FC = () => {
+  const router = useRouter();
   const {
     matricNumber,
     password,
-    acceptTerms,
-    errors,
-    handleMatricChange,
-    handlePasswordChange,
-    handleTermsChange,
-    handleSubmit,
-  } = useLoginForm();
+    isLoading,
+    error,
+    setMatricNumber,
+    setPassword,
+    login,
+  } = useUserStore();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!acceptTerms) {
+      alert("Please accept the Terms and Conditions to continue");
+      return;
+    }
+
+    await login();
+
+    // Check if login was successful and redirect
+    if (useUserStore.getState().isAuthenticated) {
+      router.push("/results");
+    }
   };
 
   return (
@@ -35,9 +53,9 @@ const LoginForm: React.FC = () => {
             label="Matric Number"
             type="text"
             value={matricNumber}
-            onChange={handleMatricChange}
+            onChange={(e) => setMatricNumber(e.target.value)}
             placeholder="Enter your matric number"
-            error={errors.matricNumber}
+            error={error}
             autoComplete="off"
           />
         </div>
@@ -48,9 +66,9 @@ const LoginForm: React.FC = () => {
             label="Password"
             type={showPassword ? "text" : "password"}
             value={password}
-            onChange={handlePasswordChange}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
-            error={errors.password}
+            error={error}
             icon={
               showPassword ? (
                 <EyeOff
@@ -73,7 +91,7 @@ const LoginForm: React.FC = () => {
               type="checkbox"
               className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition duration-150"
               checked={acceptTerms}
-              onChange={handleTermsChange}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
             />
             <span className="ml-2 text-sm text-gray-600">
               I accept the{" "}
@@ -88,8 +106,8 @@ const LoginForm: React.FC = () => {
           </label>
         </div>
 
-        <Button type="submit" fullWidth>
-          Sign In
+        <Button type="submit" fullWidth disabled={isLoading}>
+          {isLoading ? "Signing in..." : "Sign In"}
         </Button>
 
         <div className="text-center">
@@ -97,7 +115,7 @@ const LoginForm: React.FC = () => {
             href="https://play.google.com/store/apps/details?id=com.qudusayo.pointscale"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-blue-600 hover:text-blue-800 transition-colors font-medium"
+            className="text-base uppercase font-bold text-blue-600 hover:text-blue-800 transition-colors"
           >
             Download App now
           </a>

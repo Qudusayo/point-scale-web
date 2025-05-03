@@ -1,32 +1,25 @@
 "use client";
 
-import React from "react";
-import { Import } from "lucide-react";
-import Button from "@/components/ui/Button";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-
-interface Session {
-  id: string;
-  year: string;
-}
+import { useUserStore } from "../../store/useUserStore";
+import SessionBlock from "@/components/SessionBlock";
 
 const SessionsPage: React.FC = () => {
-  const sessions: Session[] = [
-    {
-      id: "1",
-      year: "2023/2024",
-    },
-    {
-      id: "2",
-      year: "2022/2023",
-    },
-  ];
+  const router = useRouter();
+  const { isAuthenticated, userData } = useUserStore();
 
-  const handleImport = (sessionId: string) => {
-    // Deep link URL for the mobile app
-    const deepLinkUrl = `campusportal://sessions/${sessionId}`;
-    window.location.href = deepLinkUrl;
-  };
+  useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!isAuthenticated) {
+      router.replace('/');
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated || !userData) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
@@ -52,27 +45,13 @@ const SessionsPage: React.FC = () => {
           {/* Sessions List */}
           <div className="px-6 py-8">
             <div className="space-y-4">
-              {sessions.map((session) => (
-                <div
-                  key={session.id}
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex flex-col justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {session.year} Session
-                      </h3>
-                    </div>
-                    <Button
-                      onClick={() => handleImport(session.id)}
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                    >
-                      <Import size={16} />
-                      Import
-                    </Button>
-                  </div>
-                </div>
+              {userData?.sessions?.map((session) => (
+                <SessionBlock
+                  key={session._id}
+                  session={session}
+                  currentSessionId={userData.session_id}
+                  deeplink={session._id === userData.session_id ? userData.data : undefined}
+                />
               ))}
             </div>
           </div>
