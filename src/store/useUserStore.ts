@@ -30,7 +30,10 @@ interface UserState {
   setPassword: (password: string) => void;
   login: () => Promise<void>;
   reset: () => void;
-  makeRequest: (endpoint: string, data?: any) => Promise<any>;
+  makeRequest: (
+    endpoint: string,
+    data?: Record<string, unknown>
+  ) => Promise<unknown>;
   addFetchedSession: (sessionId: string, data: FetchedSession) => void;
 }
 
@@ -57,29 +60,29 @@ export const useUserStore = create<UserState>((set, get) => ({
       });
 
       if (response.status === 200) {
-        set({ 
+        set({
           isAuthenticated: true,
           userData: response.data,
           error: undefined,
           fetchedSessions: {
             [response.data.session_id]: {
               session_id: response.data.session_id,
-              data: response.data.data
-            }
-          }
+              data: response.data.data,
+            },
+          },
         });
       } else {
-        set({ 
+        set({
           error: response.data.message || "Login failed",
           isAuthenticated: false,
-          userData: null
+          userData: null,
         });
       }
-    } catch (error) {
-      set({ 
+    } catch {
+      set({
         error: "An error occurred during login",
         isAuthenticated: false,
-        userData: null
+        userData: null,
       });
     } finally {
       set({ isLoading: false });
@@ -94,23 +97,23 @@ export const useUserStore = create<UserState>((set, get) => ({
       const response = await axios.post(endpoint, {
         username: matricNumber,
         password,
-        ...data
+        ...data,
       });
 
       if (response.status === 200) {
         set({ error: undefined });
         return response.data;
       } else {
-        set({ 
+        set({
           error: response.data.message || "Request failed",
-          isAuthenticated: false
+          isAuthenticated: false,
         });
         return null;
       }
-    } catch (error) {
-      set({ 
+    } catch {
+      set({
         error: "An error occurred during the request",
-        isAuthenticated: false
+        isAuthenticated: false,
       });
       return null;
     } finally {
@@ -122,8 +125,8 @@ export const useUserStore = create<UserState>((set, get) => ({
     set((state) => ({
       fetchedSessions: {
         ...state.fetchedSessions,
-        [sessionId]: data
-      }
+        [sessionId]: data,
+      },
     }));
   },
 

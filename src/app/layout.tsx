@@ -5,6 +5,7 @@ import "./globals.css";
 const atkinson = Atkinson_Hyperlegible({
   weight: "400",
   display: "swap",
+  subsets: ["latin"],
   variable: "--font-atkinson",
 });
 

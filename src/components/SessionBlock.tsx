@@ -27,9 +27,13 @@ const SessionBlock: React.FC<SessionBlockProps> = ({
   const handleFetch = async () => {
     setIsLoading(true);
     try {
-      const response = await makeRequest("/api/fetch-sessional-results", {
+      interface FetchResponse {
+        data: string;
+      }
+
+      const response: FetchResponse = await makeRequest("/api/fetch-sessional-results", {
         session: session._id,
-      });
+      }) as FetchResponse;
 
       if (response?.data) {
         addFetchedSession(session._id, {

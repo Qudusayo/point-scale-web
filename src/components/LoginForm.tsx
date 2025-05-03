@@ -107,7 +107,7 @@ const LoginForm: React.FC = () => {
         </div>
 
         <Button type="submit" fullWidth disabled={isLoading}>
-          {isLoading ? "Signing in..." : "Sign In"}
+          {isLoading ? "Fetching ..." : "Fetch Results"}
         </Button>
 
         <div className="text-center">
