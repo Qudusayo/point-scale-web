@@ -32,7 +32,7 @@ export default function Home() {
               © {new Date().getFullYear()} Point Scale. All rights reserved.
             </p>
             <p className="text-center mt-2">
-              <a href="/privacy" className="text-blue-600 hover:text-blue-800 text-sm">
+              <a href="/privacy-policy" className="text-blue-600 hover:text-blue-800 text-sm">
                 Privacy Policy
               </a>
             </p>
