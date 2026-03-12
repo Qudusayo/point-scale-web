@@ -107,7 +107,16 @@ async function getSessionName(
   return session.session;
 }
 
-function getStudentName(bioData: any): string {
+interface BioData {
+  full_name?: string;
+  surname?: string;
+  firstname?: string;
+  name?: string;
+  active_session?: string;
+  level?: string;
+}
+
+function getStudentName(bioData: BioData): string {
   if (!bioData) return "Student";
   return (
     bioData.full_name ||
