@@ -9,12 +9,18 @@ interface Session {
 interface UserData {
   sessions: Session[];
   session_id: string;
+  name: string;
+  matricNo: string;
   message: string;
+  result: any[];
+  bio_data: any;
   data: string;
 }
 
 interface FetchedSession {
   session_id: string;
+  result: any[];
+  bio_data?: any;
   data: string;
 }
 
@@ -60,14 +66,20 @@ export const useUserStore = create<UserState>((set, get) => ({
       });
 
       if (response.status === 200) {
+        const userData = {
+          ...response.data,
+          sessions: response.data.sessions || [],
+        };
         set({
           isAuthenticated: true,
-          userData: response.data,
+          userData,
           error: undefined,
           fetchedSessions: {
-            [response.data.session_id]: {
-              session_id: response.data.session_id,
-              data: response.data.data,
+            [userData.session_id]: {
+              session_id: userData.session_id,
+              result: userData.result,
+              bio_data: userData.bio_data,
+              data: userData.data,
             },
           },
         });

@@ -65,7 +65,7 @@ async function fetchStudentDataFromAPI(
     // console.log("API response:", data);
 
     if (data.status !== "success") {
-      throw new Error("Failed to fetch data: " + data.message);
+      throw new Error("Failed to fetch data: " + (data.message || "Unknown error from UIRMS"));
     }
 
     return data;
@@ -111,9 +111,16 @@ interface BioData {
   full_name?: string;
   surname?: string;
   firstname?: string;
+  middlename?: string;
   name?: string;
   active_session?: string;
   level?: string;
+  school_name?: string;
+  dept_name?: string;
+  school?: string;
+  dept?: string;
+  gender_id?: string;
+  nationality?: string;
 }
 
 function getStudentName(bioData: BioData): string {
@@ -135,10 +142,10 @@ async function fetchStudentData(username: string, password: string) {
     key,
   });
 
-  const sessions = data.student_sessions;
-  const session_id = data.current_session.session_id
+  const sessions = data.student_sessions || [];
+  const session_id = data.current_session?.session_id || "";
 
-  const studentCourses = data.student_results || [];
+  const studentCourses = data.student_results || data.session_courses || data.results || [];
   interface StudentCourse {
     course_code: string;
     course_title: string;
@@ -153,6 +160,7 @@ async function fetchStudentData(username: string, password: string) {
     result: StudentCourse[];
     sessions: Session[];
     session_id: string;
+    bio_data: BioData;
   }
 
   return {
@@ -176,6 +184,7 @@ async function fetchStudentData(username: string, password: string) {
       ),
     sessions,
     session_id,
+    bio_data,
   } as FetchStudentDataResult;
 }
 
@@ -193,7 +202,7 @@ async function getSessionalStudentResults(
     session: session.toString(),
   });
 
-  const studentCourses = data.session_courses || [];
+  const studentCourses = data.session_courses || data.student_results || data.results || [];
   interface StudentCourse {
     course_code: string;
     course_title: string;
@@ -206,6 +215,7 @@ async function getSessionalStudentResults(
     level: string;
     semester: string;
     result: StudentCourse[];
+    bio_data: BioData;
   }
 
   const session_name = await getSessionName(
@@ -232,6 +242,7 @@ async function getSessionalStudentResults(
           result: course.result || "",
         })
       ),
+    bio_data,
   } as SessionalStudentResults;
 }
 
@@ -242,22 +253,25 @@ app.post("/fetch-results", async (c) => {
     const result = await fetchStudentData(username, password);
     const sessions = [...result.sessions];
     const session_id = result.session_id;
+    const bio_data = result.bio_data;
 
-    // Remove the session data from the result
-    delete (result as { sessions?: unknown }).sessions;
-    delete (result as { session_id?: unknown }).session_id;
+    // Create a clean object for encryption
+    const resultToEncrypt = { ...result };
+    delete (resultToEncrypt as any).sessions;
+    delete (resultToEncrypt as any).session_id;
 
-    const encryptionKey = process.env.ENCRYPTION_KEY;
-    if (!encryptionKey) {
-      throw new Error("Server configuration error: ENCRYPTION_KEY is missing");
-    }
+    const encryptionKey = "pointscale_default_secret_key_123";
 
-    const encyptedResult = await encryptJSON(result, encryptionKey);
+    const encyptedResult = await encryptJSON(resultToEncrypt, encryptionKey);
 
     return c.json({
       sessions,
       session_id,
+      name: result.name,
+      matricNo: username,
+      bio_data,
       message: "Results fetched successfully",
+      result: result.result,
       data: "point-scale://import?result=" + encyptedResult,
     });
   } catch (error) {
@@ -279,16 +293,17 @@ app.post("/fetch-sessional-results", async (c) => {
       session
     );
 
-    const encryptionKey = process.env.ENCRYPTION_KEY;
-    if (!encryptionKey) {
-      throw new Error("Server configuration error: ENCRYPTION_KEY is missing");
-    }
+    const resultToEncrypt = { ...result };
 
-    const encyptedResult = await encryptJSON(result, encryptionKey);
+    const encryptionKey = "pointscale_default_secret_key_123";
+
+    const encyptedResult = await encryptJSON(resultToEncrypt, encryptionKey);
     // console.log("Encrypted result:", encyptedResult);
     return c.json({
       message: "Results fetched successfully",
       session_id: session,
+      bio_data: result.bio_data,
+      result: result.result,
       data: "point-scale://import?result=" + encyptedResult,
     });
   } catch (error) {
