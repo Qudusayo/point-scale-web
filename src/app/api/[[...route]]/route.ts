@@ -128,6 +128,7 @@ async function fetchStudentData(username: string, password: string) {
   }
 
   interface FetchStudentDataResult {
+    name: string;
     level: string;
     semester: string;
     result: StudentCourse[];
@@ -136,6 +137,7 @@ async function fetchStudentData(username: string, password: string) {
   }
 
   return {
+    name: bio_data.full_name || `${bio_data.surname || ""} ${bio_data.firstname || ""}`.trim() || bio_data.name || "Student",
     level: bio_data.active_session || level + " Level",
     semester: "Session",
     result: studentCourses
@@ -163,7 +165,7 @@ async function getSessionalStudentResults(
   password: string,
   session: number
 ) {
-  const { key, matricNo, level } = await login(username, password);
+  const { key, matricNo, level, bio_data } = await login(username, password);
 
   const data = await fetchStudentDataFromAPI("student.php", {
     action: "get_sessional_student_results",
@@ -181,6 +183,7 @@ async function getSessionalStudentResults(
   }
 
   interface SessionalStudentResults {
+    name: string;
     level: string;
     semester: string;
     result: StudentCourse[];
@@ -192,6 +195,7 @@ async function getSessionalStudentResults(
   );
 
   return {
+    name: bio_data.full_name || `${bio_data.surname || ""} ${bio_data.firstname || ""}`.trim() || bio_data.name || "Student",
     level: session_name || level + " Level",
     semester: "Session",
     result: studentCourses
