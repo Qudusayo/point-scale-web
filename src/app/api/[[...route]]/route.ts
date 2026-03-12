@@ -107,6 +107,16 @@ async function getSessionName(
   return session.session;
 }
 
+function getStudentName(bioData: any): string {
+  if (!bioData) return "Student";
+  return (
+    bioData.full_name ||
+    `${bioData.surname || ""} ${bioData.firstname || ""}`.trim() ||
+    bioData.name ||
+    "Student"
+  );
+}
+
 async function fetchStudentData(username: string, password: string) {
   const { key, matricNo, level, bio_data } = await login(username, password);
 
@@ -137,7 +147,7 @@ async function fetchStudentData(username: string, password: string) {
   }
 
   return {
-    name: bio_data.full_name || `${bio_data.surname || ""} ${bio_data.firstname || ""}`.trim() || bio_data.name || "Student",
+    name: getStudentName(bio_data),
     level: bio_data.active_session || level + " Level",
     semester: "Session",
     result: studentCourses
@@ -195,7 +205,7 @@ async function getSessionalStudentResults(
   );
 
   return {
-    name: bio_data.full_name || `${bio_data.surname || ""} ${bio_data.firstname || ""}`.trim() || bio_data.name || "Student",
+    name: getStudentName(bio_data),
     level: session_name || level + " Level",
     semester: "Session",
     result: studentCourses
@@ -228,11 +238,12 @@ app.post("/fetch-results", async (c) => {
     delete (result as { sessions?: unknown }).sessions;
     delete (result as { session_id?: unknown }).session_id;
 
-    // console.log("Fetched results:", result);
-    const encyptedResult = await encryptJSON(
-      result,
-      process.env.ENCRYPTION_KEY || ""
-    );
+    const encryptionKey = process.env.ENCRYPTION_KEY;
+    if (!encryptionKey) {
+      throw new Error("Server configuration error: ENCRYPTION_KEY is missing");
+    }
+
+    const encyptedResult = await encryptJSON(result, encryptionKey);
 
     return c.json({
       sessions,
@@ -259,10 +270,12 @@ app.post("/fetch-sessional-results", async (c) => {
       session
     );
 
-    const encyptedResult = await encryptJSON(
-      result,
-      process.env.ENCRYPTION_KEY || ""
-    );
+    const encryptionKey = process.env.ENCRYPTION_KEY;
+    if (!encryptionKey) {
+      throw new Error("Server configuration error: ENCRYPTION_KEY is missing");
+    }
+
+    const encyptedResult = await encryptJSON(result, encryptionKey);
     // console.log("Encrypted result:", encyptedResult);
     return c.json({
       message: "Results fetched successfully",
