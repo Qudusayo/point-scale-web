@@ -20,8 +20,9 @@ async function login(username: string, password: string) {
         headers: {
           Accept: "*/*",
           "Content-Type": "application/json",
+          "x-requested-with": "XMLHttpRequest",
         },
-      }
+      },
     );
 
     const loginData = loginResponse.data;
@@ -54,12 +55,18 @@ async function login(username: string, password: string) {
 
 async function fetchStudentDataFromAPI(
   path: string,
-  queryParams: Record<string, string>
+  queryParams: Record<string, string>,
 ) {
   try {
     const queryString = new URLSearchParams(queryParams).toString();
     const url = `https://uirms.ui.edu.ng/student/backend/${path}?${queryString}`;
-    const response = await axios.get(url);
+    const response = await axios.get(url, {
+      headers: {
+        Accept: "*/*",
+        "Content-Type": "application/json",
+        "x-requested-with": "XMLHttpRequest",
+      },
+    });
 
     const data = response.data;
     // console.log("API response:", data);
@@ -89,7 +96,7 @@ interface Session {
 
 async function getSessionName(
   sessions: Session[],
-  sessionId: string
+  sessionId: string,
 ): Promise<string> {
   if (!sessions || !Array.isArray(sessions)) {
     throw new Error("Invalid sessions data");
@@ -99,7 +106,7 @@ async function getSessionName(
   }
 
   const session = sessions.find(
-    (session: Session) => session._id === sessionId
+    (session: Session) => session._id === sessionId,
   );
   if (!session) {
     throw new Error("Session not found");
@@ -117,7 +124,7 @@ async function fetchStudentData(username: string, password: string) {
   });
 
   const sessions = data.student_sessions;
-  const session_id = data.current_session.session_id
+  const session_id = data.current_session.session_id;
 
   const studentCourses = data.student_results || [];
   interface StudentCourse {
@@ -151,7 +158,7 @@ async function fetchStudentData(username: string, password: string) {
           course_title: course.course_title || "",
           course_units: course.course_units || "",
           result: course.result || "",
-        })
+        }),
       ),
     sessions,
     session_id,
@@ -161,7 +168,7 @@ async function fetchStudentData(username: string, password: string) {
 async function getSessionalStudentResults(
   username: string,
   password: string,
-  session: number
+  session: number,
 ) {
   const { key, matricNo, level } = await login(username, password);
 
@@ -188,7 +195,7 @@ async function getSessionalStudentResults(
 
   const session_name = await getSessionName(
     data.student_sessions,
-    session.toString()
+    session.toString(),
   );
 
   return {
@@ -207,7 +214,7 @@ async function getSessionalStudentResults(
           course_title: course.course_title || "",
           course_units: course.course_units || "",
           result: course.result || "",
-        })
+        }),
       ),
   } as SessionalStudentResults;
 }
@@ -227,7 +234,7 @@ app.post("/fetch-results", async (c) => {
     // console.log("Fetched results:", result);
     const encyptedResult = await encryptJSON(
       result,
-      process.env.ENCRYPTION_KEY || ""
+      process.env.ENCRYPTION_KEY || "",
     );
 
     return c.json({
@@ -252,12 +259,12 @@ app.post("/fetch-sessional-results", async (c) => {
     const result = await getSessionalStudentResults(
       username,
       password,
-      session
+      session,
     );
 
     const encyptedResult = await encryptJSON(
       result,
-      process.env.ENCRYPTION_KEY || ""
+      process.env.ENCRYPTION_KEY || "",
     );
     // console.log("Encrypted result:", encyptedResult);
     return c.json({
